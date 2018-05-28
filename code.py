@@ -3,6 +3,7 @@ class vrp():
     distancias = []
     rotas = []
     visitado = []
+    custos = []
 
     def __init__(self): # Faz a leitura dos dados
         aux = input() # Guarda o numero de consumidores e a capaciedade de cada veiculo
@@ -26,19 +27,30 @@ class vrp():
         for i in self.coordenadas:
             print(i)
 
+    def exibeDistancias(self): # Exibe as distancias calculadas
+        for i in self.distancias:
+            print(i)
+
+    def exibeRotas(self): # Exibe as rotas encontradas
+        for i in self.rotas:
+            print(i)
+
+    def exibeVisitado(self): # Exibe quais cidades foram ou nao visitadas
+        print(self.visitado)
+
+    def exibeCustos(self):
+        for i in self.custos:
+            print(i)
+
+    def distancia(self, x1, y1, x2, y2): # Calcula as diastancias
+        return ((((x2-x1)**2)+((y2-y1)**2))**(1/2)) # Usa pitagoras para calcular a distancia entre dois pontos
+
     def calculaDistancias(self): # Calcula a distancia entre as cidades
         for i in range(len(self.coordenadas)): # Foram usados dois for alinhados para determinar a distancia entre cada uma das cidades
             self.distancias.append([]) # Adiciona uma noma linha na matriz
             self.visitado.append(0)
             for j in range(len(self.coordenadas)):
                 self.distancias[i].append(self.distancia(self.coordenadas[i][0], self.coordenadas[i][1], self.coordenadas[j][0], self.coordenadas[j][1]))
-
-    def exibeDistancias(self): # Exibe as distancias calculadas
-        for i in self.distancias:
-            print(i)
-
-    def distancia(self, x1, y1, x2, y2): # Calcula as diastancias
-        return ((((x2-x1)**2)+((y2-y1)**2))**(1/2)) # Usa pitagoras para calcular a distancia entre dois pontos
 
     def confirmVisitado(self): # Procura se existe alguma cidade para visitar
         for i in self.visitado:
@@ -99,26 +111,46 @@ class vrp():
         self.exibeRotas()
         self.calculaCustoRotas()
 
-    def exibeRotas(self): # Exibe as rotas encontradas
-        for i in self.rotas:
-            print(i)
-
-    def exibeVisitado(self): # Exibe quais cidades foram ou nao visitadas
-        print(self.visitado)
-
-    def calculaCustoRotas(self):
-        custo = 0;
-        cont = 0;
+    def calculaCustoRotas(self): # Soma o custo das rotas geradas
+        custo = 0
         for i in range(len(self.rotas)):
             for j in range(len(self.rotas[i])-1):
                 custo += self.distancias[self.rotas[i][j]][self.rotas[i][j+1]]
 
         print("Custo total: " + str(custo))
 
+    def iniciaRotas(self): # Inicializa N rotas para N veiculos
+        for i in range(1, len(self.coordenadas)):
+            self.rotas.append([0, i, 0])
+
+    def iniciaCustos(self): # Inicializa a lista de custo utilizando a formula Sij = Ci0 + C0j - Cij para i diferente de j
+        for i in range(1, len(self.coordenadas)):
+            for j in range(1, len(self.coordenadas)):
+                if i != j:
+                    self.custos.append([i, j, (self.distancias[i][0] + self.distancias[0][j] - self.distancias[i][j])])
+
+    def ordenaCustos(self): # Ordena os custos calculados previamente em ordem decrescente
+        for i in range(len(self.custos)):
+            #print(self.custos[i])
+            for j in range(len(self.custos)-1-i):
+                if(self.custos[j][2] < self.custos[j+1][2]):
+                    self.custos[j][2], self.custos[j+1][2] = self.custos[j+1][2], self.custos[j][2]
+
+    def savings(self): # Algoritmo de Savings
+        self.iniciaRotas() # Chama o metodo responsavel por inicializar N rotas para N veiculos
+        self.iniciaCustos() # Calcula os custo com base na formula Sij = Ci0 + C0j - Cij
+        self.ordenaCustos() # Ordena a lista de custos de forma decrescentes
+
+        
+
+        self.exibeRotas()
+        self.calculaCustoRotas()
 
 if __name__ == "__main__":
     vrp_ai = vrp()
     #vrp_ai.exibe()
     vrp_ai.calculaDistancias()
     #vrp_ai.exibeDistancias()
-    vrp_ai.geraRotas()
+    #vrp_ai.geraRotas()
+    vrp_ai.savings()
+    #vrp_ai.exibeCustos()
