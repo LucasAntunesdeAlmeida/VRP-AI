@@ -8,6 +8,7 @@
  # Lucas Antunes de Almeida - 161150753
 
 from operator import itemgetter
+from random import randint
 
 class vrp():
 
@@ -63,12 +64,11 @@ class vrp():
     def calculaCustoRotas(self): # Soma o custo das rotas geradas
         custo = 0
         for i in range(len(self.rotas)):
-            for j in range(len(self.rotas[i])-1):
-                custo += self.distancias[self.rotas[i][j]][self.rotas[i][j+1]]
+            custo += self.returnDistancia(self.rotas[i])
 
         print("Custo total: " + str(custo))
 
-    def fechaRotas(self): # fecha uma rota [i...n] com [0, i...n, 0]
+    def fechaRotas(self): # Fecha uma rota [i...n] com [0, i...n, 0]
         for i in self.rotas:
             i.insert(0, 0)
             i.append(0)
@@ -91,6 +91,12 @@ class vrp():
         for i in range(len(list)): # Soma a demanda de todas as cidades da rotas
             cont += self.coordenadas[list[i]][2]
         return cont # Retorna a demanda encontrada para a rota
+
+    def returnDistancia(self, list):
+        custo = 0
+        for i in range(len(list)-1):
+            custo += self.distancias[list[i]][list[i+1]]
+        return custo
 
     def agrupaRotas(self): # Agrupa as rotas em rotas maiores
         for i in self.custos: # Percorre a lista gerada por Sij = Ci0 + C0j - Cij
@@ -120,9 +126,51 @@ class vrp():
         self.iniciaCustos() # Calcula os custo com base na formula Sij = Ci0 + C0j - Cij
         self.ordenaCustos() # Ordena a lista de custos
         self.agrupaRotas() # Agrupas as rotas com base na lista de custos ordenada acima
+        #self.tabu() # Tenta melhorar as rotas geradas utilizando trocas aleatorias
         self.fechaRotas() # fecha as rotas encontradas adicionando 0 no inicio e 0 no fim
         self.exibeRotas() # Exibe as rotas geradas
-        #self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
+        self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
+
+    def trocasExternas(self): # Realiza trocas de cidades entre as rotas
+        for i in range(10000): # Realiza 10000 iteracoes
+            auxRota1 = randint(0,len(self.rotas)-1) # Sorteia o indice da primeira rota
+            auxRota2 = randint(0,len(self.rotas)-1) # Sorteia o indice da segunda rota
+            auxCidade1 = randint(0,len(self.rotas[auxRota1])-1) # Sorteia o indice de alguma cidade da primeira rota
+            auxCidade2 = randint(0,len(self.rotas[auxRota2])-1) # Sorteia o indice de alguma cidade da segunda rota
+            self.trocas(auxRota1, auxRota2, auxCidade1, auxCidade2) # Se possivel e vantajoso, realiza a troca das cidades
+
+
+    def trocasInternas(self): # Realiza trocas de cidades internamente as rotas
+        for i in range(len(self.rotas)): # Percorre a lista de rotas
+            for j in range(1000): # Realiza 1000 iteracoes para cada rota
+                auxCidade1 = randint(0,len(self.rotas[i])-1) # Sorteia uma cidade da rota atual
+                auxCidade2 = randint(0,len(self.rotas[i])-1) # Sorteia uma cidade da rota atual
+                self.trocas(i, i, auxCidade1, auxCidade2) # Se possivel e vantajoso, realiza a troca das cidades
+
+    def trocas(self, auxRota1, auxRota2, auxCidade1, auxCidade2): # Se possivel e vantajoso, realiza a troca das cidades
+        auxCapacidade1_1 = self.returnCapacidade(self.rotas[auxRota1]) # Guarda o valor da demanda da rota 1
+        auxCapacidade2_1 = self.returnCapacidade(self.rotas[auxRota2]) # Guarda o valor da demanda da rota 2
+        auxDistancia1_1 = self.returnDistancia(self.rotas[auxRota1]) # Guarda o valor da distancia da rota 1
+        auxDistancia2_1 = self.returnDistancia(self.rotas[auxRota2]) # Guarda o valor da distancia da rota 2
+
+        self.rotas[auxRota1][auxCidade1], self.rotas[auxRota2][auxCidade2] = self.rotas[auxRota2][auxCidade2], self.rotas[auxRota1][auxCidade1] # Troca as duas cidades selecionadas
+
+        auxCapacidade1_2 = self.returnCapacidade(self.rotas[auxRota1]) # Guarda o novo valor da demanda da rota 1
+        auxCapacidade2_2 = self.returnCapacidade(self.rotas[auxRota2]) # Guarda o novo valor da demanda da rota 2
+        auxDistancia1_2 = self.returnDistancia(self.rotas[auxRota1]) # Guarda o valor da nova distancia da rota 1
+        auxDistancia2_2 = self.returnDistancia(self.rotas[auxRota2]) # Guarda o valor da nova distancia da rota 2
+
+        if not(
+            (auxCapacidade1_1 >= auxDistancia1_2) and # Checa se o valor da capacidade da rota 1 nova eh melhor que a capacidade anterior
+            (auxCapacidade2_1 >= auxCapacidade2_2) and # Checa se o valor da capacidade da rota 2 nova eh melhor que a capacidade anterior
+            (auxDistancia1_1 > auxDistancia1_2) and # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
+            (auxDistancia2_1 > auxDistancia2_2) # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
+            ): # Caso algum dos teste de zero desfaz a troca
+            self.rotas[auxRota1][auxCidade1], self.rotas[auxRota2][auxCidade2] = self.rotas[auxRota2][auxCidade2], self.rotas[auxRota1][auxCidade1] # desfaz a troca das duas cidades selecionadas
+
+    def tabu(self): # Tenta melhorar as rotas geradas utilizando uma especie de busca tabu
+        self.trocasExternas() # Realiza trocas de cidades entre as rotas
+        self.trocasInternas() # Realiza trocas de cidades internamente as rotas
 
 if __name__ == "__main__":
     vrp_ai = vrp()
