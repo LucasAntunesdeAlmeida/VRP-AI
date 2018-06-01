@@ -47,6 +47,7 @@ class vrp():
             for j in i:
                 print(j,'', end='')
             print()
+            #print(self.returnDistancia(i), self.returnCapacidade(i))
 
     def exibeCustos(self): # Exibe os custos obtidos no calculo Sij = Ci0 + C0j - Cij
         for i in self.custos:
@@ -148,8 +149,6 @@ class vrp():
                 self.trocas(i, i, auxCidade1, auxCidade2) # Se possivel e vantajoso, realiza a troca das cidades
 
     def trocas(self, auxRota1, auxRota2, auxCidade1, auxCidade2): # Se possivel e vantajoso, realiza a troca das cidades
-        auxCapacidade1_1 = self.returnCapacidade(self.rotas[auxRota1]) # Guarda o valor da demanda da rota 1
-        auxCapacidade2_1 = self.returnCapacidade(self.rotas[auxRota2]) # Guarda o valor da demanda da rota 2
         auxDistancia1_1 = self.returnDistancia(self.rotas[auxRota1]) # Guarda o valor da distancia da rota 1
         auxDistancia2_1 = self.returnDistancia(self.rotas[auxRota2]) # Guarda o valor da distancia da rota 2
 
@@ -161,10 +160,10 @@ class vrp():
         auxDistancia2_2 = self.returnDistancia(self.rotas[auxRota2]) # Guarda o valor da nova distancia da rota 2
 
         if not(
-            (auxCapacidade1_1 >= auxDistancia1_2) and # Checa se o valor da capacidade da rota 1 nova eh melhor que a capacidade anterior
-            (auxCapacidade2_1 >= auxCapacidade2_2) and # Checa se o valor da capacidade da rota 2 nova eh melhor que a capacidade anterior
-            (auxDistancia1_1 > auxDistancia1_2) and # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
-            (auxDistancia2_1 > auxDistancia2_2) # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
+            (auxCapacidade1_2 <= self.capacidade) and # Checa se o valor da capacidade da rota 1 nao ultrapassa a capacidade do caminhao
+            (auxCapacidade2_2 <= self.capacidade) and # Checa se o valor da capacidade da rota 2 nao ultrapassa a capacidade do caminhao
+            (auxDistancia1_1 >= auxDistancia1_2) and # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
+            (auxDistancia2_1 >= auxDistancia2_2) # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
             ): # Caso algum dos teste de zero desfaz a troca
             self.rotas[auxRota1][auxCidade1], self.rotas[auxRota2][auxCidade2] = self.rotas[auxRota2][auxCidade2], self.rotas[auxRota1][auxCidade1] # desfaz a troca das duas cidades selecionadas
 
