@@ -4,7 +4,12 @@
  # ╚██╗ ██╔╝██╔══██╗██╔═══╝ ╚════╝██╔══██║██║
  #  ╚████╔╝ ██║  ██║██║           ██║  ██║██║
  #   ╚═══╝  ╚═╝  ╚═╝╚═╝           ╚═╝  ╚═╝╚═╝
- # Solucao do Problema de roteamento de veiculos utilizando savings
+ # Solucao do Problema de roteamento de veiculos utilizando o algoritmo de savings
+ # - Com base em uma lista que mantem os resultados da equacao Sij = Ci0 + C0j - Cij para i diferente de j
+ #   foram definidas quais cidades deveriam ser conectadas
+ # - Conecta-se uma cidade ou uma rota a outra cidade ou rota enquanto a capacidade do caminhao conseguir suprir a demanda
+ # Esta abordagem foi utilizada apos a leitura do artigo que se encontra na mesma pasta (AvaliacaoDeHeuristicasDeMelhoramentoETabu.pdf)
+ # Houve uma tentativa de utilizar tabu, entretanto o custo encontrado nao variou tanto
  # Lucas Antunes de Almeida - 161150753
 
 from operator import itemgetter # Funcao que auxilia na ordenacao dos custos
@@ -125,16 +130,16 @@ class vrp():
         for i in range(10000): # Realiza 10000 iteracoes
             auxRota1 = randint(0,len(self.rotas)-1) # Sorteia o indice da primeira rota
             auxRota2 = randint(0,len(self.rotas)-1) # Sorteia o indice da segunda rota
-            auxCidade1 = randint(0,len(self.rotas[auxRota1])-1) # Sorteia o indice de alguma cidade da primeira rota
-            auxCidade2 = randint(0,len(self.rotas[auxRota2])-1) # Sorteia o indice de alguma cidade da segunda rota
+            auxCidade1 = randint(1,len(self.rotas[auxRota1])-2) # Sorteia o indice de alguma cidade da primeira rota
+            auxCidade2 = randint(1,len(self.rotas[auxRota2])-2) # Sorteia o indice de alguma cidade da segunda rota
             self.trocas(auxRota1, auxRota2, auxCidade1, auxCidade2) # Se possivel e vantajoso, realiza a troca das cidades
 
 
     def trocasInternas(self): # Realiza trocas de cidades internamente as rotas
         for i in range(len(self.rotas)): # Percorre a lista de rotas
             for j in range(1000): # Realiza 1000 iteracoes para cada rota
-                auxCidade1 = randint(0,len(self.rotas[i])-1) # Sorteia uma cidade da rota atual
-                auxCidade2 = randint(0,len(self.rotas[i])-1) # Sorteia uma cidade da rota atual
+                auxCidade1 = randint(1,len(self.rotas[i])-2) # Sorteia uma cidade da rota atual
+                auxCidade2 = randint(1,len(self.rotas[i])-2) # Sorteia uma cidade da rota atual
                 self.trocas(i, i, auxCidade1, auxCidade2) # Se possivel e vantajoso, realiza a troca das cidades
 
     def trocas(self, auxRota1, auxRota2, auxCidade1, auxCidade2): # Se possivel e vantajoso, realiza a troca das cidades
@@ -168,10 +173,10 @@ class vrp():
         self.iniciaCustos() # Calcula os custo com base na formula Sij = Ci0 + C0j - Cij
         self.ordenaCustos() # Ordena a lista de custos
         self.agrupaRotas() # Agrupas as rotas com base na lista de custos ordenada acima
-        #self.tabu() # Tenta melhorar as rotas geradas utilizando trocas aleatorias
         self.fechaRotas() # fecha as rotas encontradas adicionando 0 no inicio e 0 no fim
+        self.tabu() # Tenta melhorar as rotas geradas utilizando trocas aleatorias
         self.exibeRotas() # Exibe as rotas geradas
-        #self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
+        self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
 
 if __name__ == "__main__":
     vrp_ai = vrp() # Inicializa o objeto, e efetua a leitura dos dados
