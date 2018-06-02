@@ -7,8 +7,8 @@
  # Solucao do Problema de roteamento de veiculos utilizando savings
  # Lucas Antunes de Almeida - 161150753
 
-from operator import itemgetter
-from random import randint
+from operator import itemgetter # Funcao que auxilia na ordenacao dos custos
+from random import randint # Funcao resolpaser por sortear inteiros randomicos
 
 class vrp():
 
@@ -88,7 +88,7 @@ class vrp():
         self.custos = sorted(self.custos, key=itemgetter(2), reverse=True) # Usa a funcao sorted para ordenar a lista de custos
 
     def returnCapacidade(self, list): # Verifica quanta demanda a rota esta usando
-        cont = 0; # Acumulador
+        cont = 0 # Acumulador
         for i in range(len(list)): # Soma a demanda de todas as cidades da rotas
             cont += self.coordenadas[list[i]][2]
         return cont # Retorna a demanda encontrada para a rota
@@ -121,17 +121,6 @@ class vrp():
                         self.rotas.append(listA + listB) # Adiciona a lista de rotas uma nova rota constituida da unicao das rotas removidas anteriormente
                     break # Como entrou no if nao precisa mais rodar o for atual
 
-    def savings(self): # Algoritmo de Savings
-        self.calculaDistancias() # Calcula as distancias entre as cidades
-        self.iniciaRotas() # Chama o metodo responsavel por inicializar N rotas para N veiculos
-        self.iniciaCustos() # Calcula os custo com base na formula Sij = Ci0 + C0j - Cij
-        self.ordenaCustos() # Ordena a lista de custos
-        self.agrupaRotas() # Agrupas as rotas com base na lista de custos ordenada acima
-        #self.tabu() # Tenta melhorar as rotas geradas utilizando trocas aleatorias
-        self.fechaRotas() # fecha as rotas encontradas adicionando 0 no inicio e 0 no fim
-        self.exibeRotas() # Exibe as rotas geradas
-        self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
-
     def trocasExternas(self): # Realiza trocas de cidades entre as rotas
         for i in range(10000): # Realiza 10000 iteracoes
             auxRota1 = randint(0,len(self.rotas)-1) # Sorteia o indice da primeira rota
@@ -159,11 +148,13 @@ class vrp():
         auxDistancia1_2 = self.returnDistancia(self.rotas[auxRota1]) # Guarda o valor da nova distancia da rota 1
         auxDistancia2_2 = self.returnDistancia(self.rotas[auxRota2]) # Guarda o valor da nova distancia da rota 2
 
+        soma1 = auxDistancia1_1 + auxDistancia2_1 # Soma a distancias percorrida pelas rotas selecionas
+        soma2 = auxDistancia1_2 + auxDistancia2_2 # Soma a distancia percorrida pelas duas novas rotas
+
         if not(
             (auxCapacidade1_2 <= self.capacidade) and # Checa se o valor da capacidade da rota 1 nao ultrapassa a capacidade do caminhao
             (auxCapacidade2_2 <= self.capacidade) and # Checa se o valor da capacidade da rota 2 nao ultrapassa a capacidade do caminhao
-            (auxDistancia1_1 >= auxDistancia1_2) and # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
-            (auxDistancia2_1 >= auxDistancia2_2) # Checa se o valor da distancia da rota 1 nova eh melhor se o valor da distancia anterior
+            (soma1 >= soma2)  # Checa se o novo valor da distancia eh melhor se o valor da distancia anterior
             ): # Caso algum dos teste de zero desfaz a troca
             self.rotas[auxRota1][auxCidade1], self.rotas[auxRota2][auxCidade2] = self.rotas[auxRota2][auxCidade2], self.rotas[auxRota1][auxCidade1] # desfaz a troca das duas cidades selecionadas
 
@@ -171,6 +162,17 @@ class vrp():
         self.trocasExternas() # Realiza trocas de cidades entre as rotas
         self.trocasInternas() # Realiza trocas de cidades internamente as rotas
 
+    def savings(self): # Algoritmo de Savings
+        self.calculaDistancias() # Calcula as distancias entre as cidades
+        self.iniciaRotas() # Chama o metodo responsavel por inicializar N rotas para N veiculos
+        self.iniciaCustos() # Calcula os custo com base na formula Sij = Ci0 + C0j - Cij
+        self.ordenaCustos() # Ordena a lista de custos
+        self.agrupaRotas() # Agrupas as rotas com base na lista de custos ordenada acima
+        #self.tabu() # Tenta melhorar as rotas geradas utilizando trocas aleatorias
+        self.fechaRotas() # fecha as rotas encontradas adicionando 0 no inicio e 0 no fim
+        self.exibeRotas() # Exibe as rotas geradas
+        #self.calculaCustoRotas() # Calcula e exibe o custo das rotas geradas (distancia percorrida)
+
 if __name__ == "__main__":
-    vrp_ai = vrp()
-    vrp_ai.savings()
+    vrp_ai = vrp() # Inicializa o objeto, e efetua a leitura dos dados
+    vrp_ai.savings() # Utiliza o algoritmo de savings para encontrar as rotas
